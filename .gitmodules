@@ -1,0 +1,6 @@
+[submodule "shapes"]
+	path = shapes
+	url = https://github.com/taKana671/shapes.git
+[submodule "noise"]
+	path = noise
+	url = https://github.com/taKana671/NoiseTexture.git
