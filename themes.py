@@ -3,21 +3,27 @@ from enum import Enum
 
 class Mountain(Enum):
 
-    LAYER_01 = [25, 47, 96, 255]
-    LAYER_02 = [38, 73, 757, 255]
-    LAYER_03 = [160, 216, 239, 255]
-    LAYER_04 = [255, 247, 153, 255]
-    LAYER_05 = [255, 243, 183, 255]
-    LAYER_06 = [167, 210, 141, 255]
-    LAYER_07 = [97, 142, 52, 255]
-    LAYER_08 = [0, 77, 37, 255]
-    LAYER_09 = [191, 120, 62, 255]
-    LAYER_10 = [143, 101, 82, 255]
-    LAYER_11 = [98, 45, 24, 255]
-    LAYER_12 = [159, 160, 158, 255]
-    LAYER_13 = [78, 69, 74, 255]
-    LAYER_14 = [255, 255, 255, 255]
+    LAYER_01 = [25, 47, 96, 255]   # iron blue
+    LAYER_02 = [38, 73, 157, 255]  # oriental blue
+    LAYER_03 = [111, 84, 54, 255]  # burnt umber
+    LAYER_04 = [0, 51, 25, 255]
+    LAYER_05 = [0, 102, 49, 255]
+    LAYER_06 = [0, 133, 54, 255]
+
+    def __init__(self, rgba):
+        self.rgba = [round(v / 255, 2) for v in rgba]
 
     @classmethod
-    def to_dict(cls):
-        return {m.name: [round(v / 255, 2) for v in m.value] for m in cls}
+    def color(cls, z):
+        if z <= 0.5:
+            return cls.LAYER_01.rgba
+        if z <= 0.6:
+            return cls.LAYER_02.rgba
+        if z <= 0.63:
+            return cls.LAYER_03.rgba
+        if z <= 0.8:
+            return cls.LAYER_04.rgba
+        if z <= 1.0:
+            return cls.LAYER_05.rgba
+
+        return cls.LAYER_06.rgba
