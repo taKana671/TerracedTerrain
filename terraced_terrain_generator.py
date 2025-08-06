@@ -22,7 +22,8 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             octaves (int): The number of loops to calculate the height of the vertex coordinates
     """
 
-    def __init__(self, noise=None, scale=10, segs_c=5, radius=4, max_depth=6, octaves=3):
+    def __init__(self, noise, scale=10, segs_c=5, radius=4,
+                 max_depth=6, octaves=3, theme=Mountain):
         super().__init__()
         self.center = Point3(0, 0, 0)
         self.noise = noise
@@ -31,21 +32,25 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         self.radius = radius
         self.max_depth = max_depth
         self.octaves = octaves
+        self.theme = theme
 
     @classmethod
-    def from_simplex(cls, scale=8, segs_c=5, radius=3, max_depth=6, octaves=3):
+    def from_simplex(cls, scale=8, segs_c=5, radius=3,
+                     max_depth=6, octaves=3, theme=Mountain):
         noise = SimplexNoise()
-        return cls(noise.snoise2, scale, segs_c, radius, max_depth, octaves)
+        return cls(noise.snoise2, scale, segs_c, radius, max_depth, octaves, theme)
 
     @classmethod
-    def from_perlin(cls, scale=15, segs_c=5, radius=3, max_depth=6, octaves=3):
+    def from_perlin(cls, scale=15, segs_c=5, radius=3,
+                    max_depth=6, octaves=3, theme=Mountain):
         noise = PerlinNoise()
-        return cls(noise.pnoise2, scale, segs_c, radius, max_depth, octaves)
+        return cls(noise.pnoise2, scale, segs_c, radius, max_depth, octaves, theme)
 
     @classmethod
-    def from_cellular(cls, scale=10, segs_c=5, radius=3, max_depth=6, octaves=3):
+    def from_cellular(cls, scale=10, segs_c=5, radius=3,
+                      max_depth=6, octaves=3, theme=Mountain):
         noise = CellularNoise()
-        return cls(noise.fdist2, scale, segs_c, radius, max_depth, octaves)
+        return cls(noise.fdist2, scale, segs_c, radius, max_depth, octaves, theme)
 
     def get_polygon_vertices(self, theta):
         rad = math.radians(theta)
@@ -270,12 +275,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         prim_indices = array.array('I', [])
         vertex_cnt = 0
 
-        self.theme = Mountain
-        # import pdb; pdb.set_trace()
-        # self.theme = IceLand
-        # self.theme = Desert
         vertex_cnt += self.generate_terraced_terrain(vertex_cnt, vdata_values, prim_indices)
-
         # create a geom node.
         geom_node = self.create_geom_node(
             vertex_cnt, vdata_values, prim_indices, 'terraced_terrain')

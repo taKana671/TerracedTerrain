@@ -3,19 +3,17 @@ import math
 from enum import Enum, auto
 from datetime import datetime
 
-import direct.gui.DirectGuiGlobals as DGG
 from panda3d.core import Vec3, Vec2, Point3, LColor, Vec4
 from panda3d.core import AmbientLight, DirectionalLight
-from panda3d.core import NodePath, TextNode
+from panda3d.core import NodePath
 from panda3d.core import load_prc_file_data
 from panda3d.core import OrthographicLens, Camera, MouseWatcher, PGTop
-from panda3d.core import TransparencyAttrib, AntialiasAttrib
-from direct.gui.DirectGui import DirectEntry, DirectFrame, DirectLabel, DirectButton, OkDialog, DirectRadioButton
+from panda3d.core import AntialiasAttrib
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
+from themes import Mountain, IceLand, Desert
 
-
-# from shapes.pentagonal_division import PentagonalDivision
+from gui import Gui
 from terraced_terrain_generator import TerracedTerrainGenerator
 
 # Without 'framebuffer-multisample' and 'multisamples' settings,
@@ -26,6 +24,7 @@ load_prc_file_data("", """
     framebuffer-multisample 1
     multisamples 2
     """)
+
 
 class Status(Enum):
 
@@ -57,19 +56,16 @@ class TerracedTerrain(ShowBase):
         self.gui_aspect2d = self.create_gui_region(Vec4(0.0, 0.2, 0.0, 1.0), 'gui')
 
         # create gui.
-        self.gui = Gui()
-        self.gui.create_control_widgets(self.gui_aspect2d)
+        self.gui = Gui(self.gui_aspect2d)
+        self.gui.create_control_widgets()
+        # self.gui = Gui()
+        # self.gui.create_control_widgets(self.gui_aspect2d)
         self.dispay_model(hpr=Vec3(0, 45, 0))
-
-
 
         self.show_wireframe = False
         self.dragging = False
         self.before_mouse_pos = None
         self.state = Status.SHOW_MODEL
-
-        # Show model.
-        # self.dispay_model()
 
         self.accept('d', self.toggle_wireframe)
         self.accept('i', self.print_info)
@@ -83,38 +79,37 @@ class TerracedTerrain(ShowBase):
             hpr = self.model.get_hpr()
             self.model.remove_node()
 
-        # maker = TerracedTerrainGenerator.from_cellular(scale=15, octaves=6)
-        # maker = TerracedTerrainGenerator.from_cellular()
-        # self.maker = TerracedTerrainGenerator.from_simplex()
-        # maker = TerracedTerrainGenerator.from_perlin()
-
-        # self.model = self.loader.load_model('mysample.bam')
-
         self.model = self.terrain_maker.create()
-        self.model.set_pos_hpr_scale(Point3(0, 0, 0), Vec3(0, 45, 0), 4)
+        self.model.set_pos_hpr_scale(Point3(0, 0, 0), hpr, 4)
         self.model.reparent_to(self.render)
 
-        # self.model.writeBamFile("mysample.bam")
+    def change_terrain(self, selected_theme, input_values):
+        for k, v in input_values.items():
+            setattr(self.terrain_maker, k, v)
 
-        # self.model = self.loader.load_model('torus_20241012130437.bam')
-        # self.model.reparent_to(self.render)
-        # self.model.set_texture(self.loader.load_texture('brick.jpg'))
+        match selected_theme:
+            case 'mountain':
+                theme = Mountain
+            case 'ice land':
+                theme = IceLand
+            case 'desert':
+                theme = Desert
 
-        # if self.show_wireframe:
-        #     self.model.set_render_mode_wireframe()
+        setattr(self.terrain_maker, "theme", theme)
+        self.dispay_model()  # <---------------------Do in update method by using status.
 
-    def change_terrain(self):
-        try:
-            self.terrain_maker.scale = float(self.gui.entries['scale'].get())
-            self.terrain_maker.segs_c = int(self.gui.entries['segs_c'].get())
-            self.terrain_maker.radius = float(self.gui.entries['radius'].get())
-            self.terrain_maker.max_depth = int(self.gui.entries['max_depth'].get())
-            self.terrain_maker.octaves = int(self.gui.entries['octaves'].get())
-        except Exception:
-            print('Check variables in entry boxes.')
-        else:
-            self.dispay_model()
+    def create_terrain_generator(self, noise):
+        match noise:
+            case 'Simplex Noise':
+                self.terrain_maker = TerracedTerrainGenerator.from_simplex()
 
+            case 'Celullar Noise':
+                self.terrain_maker = TerracedTerrainGenerator.from_cellular()
+
+            case 'Perlin Noise':
+                self.terrain_maker = TerracedTerrainGenerator.from_perlin()
+
+        return {k: getattr(self.terrain_maker, k) for k in self.gui.input_items.keys()}
 
     def output_bam_file(self):
         model_type = self.model_cls.__name__.lower()
@@ -307,176 +302,6 @@ class TerracedTerrain(ShowBase):
                         if globalClock.get_frame_time() - self.dragging_start_time >= 0.2:
                             self.rotate_camera(mouse_pos, dt)
         return task.cont
-
-
-class Frame(DirectFrame):
-
-    def __init__(self, parent, size):
-        super().__init__(
-            parent=parent,
-            frameSize=size,
-            frameColor=Gui.frame_color,
-            pos=Point3(0, 0, 0),
-            relief=DGG.SUNKEN,
-            borderWidth=(0.01, 0.01)
-        )
-        self.initialiseoptions(type(self))
-        self.set_transparency(TransparencyAttrib.MAlpha)
-
-
-class RadioButton(DirectRadioButton):
-
-    def __init__(self, parent, txt, pos, variable, command):
-        super().__init__(
-            parent=parent,
-            pos=pos,
-            frameSize=(-2.5, 2.5, -0.5, 0.5),
-            frameColor=(1, 1, 1, 0),
-            scale=0.06,
-            text_align=TextNode.ALeft,
-            text=txt,
-            text_pos=(-1.5, -0.3),
-            text_fg=(1, 1, 1, 1),
-            value=[txt],
-            variable=variable,
-            command=command
-        )
-        self.initialiseoptions(type(self))
-
-
-class Gui:
-
-    frame_color = LColor(0.6, 0.6, 0.6, 1)
-    text_color = LColor(1.0, 1.0, 1.0, 1.0)
-
-    def __init__(self):
-        # self.font = base.loader.load_font('fonts/DejaVuSans.ttf')
-        self.text_size = 0.06
-        self.default_theme = None
-
-        # base.accept('tab', self.change_focus, [True])
-        # base.accept('shift-tab', self.change_focus, [False])
-
-    def create_control_widgets(self, parent):
-        frame = Frame(
-            parent,
-            Vec4(-0.6, 0.6, -1., 1.),  # (left, right, bottom, top)
-        )
-
-        self.create_entries(frame, 0.15)
-        self.create_radios(frame, 0.85)
-        self.create_buttons(frame, -0.7)
-
-    def create_buttons(self, frame, start_z):
-        buttons = [
-            ('Reflect Changes', self.reflect_changes),
-            ('Output BamFile', '')
-        ]
-
-        for i, (text, cmd) in enumerate(buttons):
-            z = start_z - 0.1 * i
-
-            DirectButton(
-                parent=frame,
-                pos=Point3(0, 0, z),
-                relief=DGG.RAISED,
-                frameSize=(-0.255, 0.255, -0.05, 0.05),
-                frameColor=self.frame_color,
-                borderWidth=(0.01, 0.01),
-                text=text,
-                text_fg=self.text_color,
-                text_scale=self.text_size,
-                # text_font=self.font,
-                text_pos=(0, -0.01),
-                command=cmd
-            )
-
-    def create_entries(self, frame, start_z):
-        self.entries = {}
-        start_z = 0.15
-        vars = ['scale', 'segs_c', 'radius', 'max_depth', 'octaves']
-
-        for i, name in enumerate(vars):
-            z = start_z - i * 0.1
-
-            label = DirectLabel(
-                parent=frame,
-                pos=Point3(-0.32, 0.0, z),
-                frameColor=LColor(1, 1, 1, 0),
-                text=name,
-                text_fg=self.text_color,
-                # text_font=self.font,
-                text_scale=self.text_size,
-                text_align=TextNode.ALeft
-            )
-
-            entry = DirectEntry(
-                parent=frame,
-                pos=Point3(0.07, 0, z),
-                relief=DGG.SUNKEN,
-                frameColor=self.frame_color,
-                text_fg=self.text_color,
-                width=4,
-                scale=self.text_size,
-                numLines=1,
-                # text_font=self.font,
-                initialText='',
-            )
-            self.entries[name] = entry
-
-            if i == 0:
-                entry['focus'] = 1
-
-    def create_radios(self, frame, start_z):
-        noises = ['simplex noise', 'celullar noise', 'perlin noise']
-        themes = ['mountain', 'ice land', 'desert']
-        self.noise = noises[:1]
-        self.theme = themes[:1]
-
-        items = [
-            [noises, self.noise, self.choose_noise],
-            [themes, self.theme, ''],
-        ]
-
-        for names, variable, func in items:
-            radios = []
-
-            for i, name in enumerate(names):
-                z = start_z - i * 0.08
-                pos = (-0.18, 0, z)
-                radio = RadioButton(frame, name, pos, variable, func)
-                radios.append(radio)
-
-                if name == 'mountain':
-                    self.default_theme = radio
-
-            for r in radios:
-                r.setOthers(radios)
-
-            start_z = z - 0.08 * 2
-
-    def choose_noise(self):
-        match self.noise[0]:
-            case 'simplex noise':
-                maker = TerracedTerrainGenerator.from_simplex()
-
-            case 'celullar noise':
-                maker = TerracedTerrainGenerator.from_cellular()
-
-            case 'perlin noise':
-                maker = TerracedTerrainGenerator.from_perlin()
-
-        if self.default_theme is not None:
-            self.default_theme.check()
-
-        for key, entry in self.entries.items():
-            v = maker.__dict__[key]
-            entry.enterText(str(v))
-
-        base.terrain_maker = maker
-
-    def reflect_changes(self):
-        base.change_terrain()
 
 
 if __name__ == '__main__':
