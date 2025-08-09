@@ -7,7 +7,7 @@ from panda3d.core import Vec3, Point3, Vec2
 
 from shapes.create_geometry import ProceduralGeometry
 from noise import SimplexNoise, PerlinNoise, CellularNoise
-from themes import Mountain, IceLand, Desert
+from themes import Mountain
 
 
 class TerracedTerrainGenerator(ProceduralGeometry):
@@ -132,7 +132,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             h1 = v1.z
             h2 = v2.z
             h3 = v3.z
-
+            # import pdb; pdb.set_trace()
             li = [int(h_ * 10) for h_ in (h1, h2, h3)]
             h_min = np.floor(min(li))
             h_max = np.floor(max(li))
@@ -192,11 +192,18 @@ class TerracedTerrainGenerator(ProceduralGeometry):
 
                 # find locations of new points that are located on the sides of the triangle's projections,
                 # by interpolating between vectors based on their heights.
-                t1 = (h1 - h) / (h1 - h3)  # interpolation value for v1 and v3
+
+                # interpolation value for v1 and v3
+                # h is np.float64. if h1 - h3 == 0, t1 becomes -inf.
+                t1 = 0 if (denom := h1 - h3) == 0 else (h1 - h) / denom
+                # t1 = (h1 - h) / (h1 - h3)
                 v1_c_n = self.lerp(v1_c, v3_c, t1)
                 v1_b_n = self.lerp(v1_b, v3_b, t1)
 
-                t2 = (h2 - h) / (h2 - h3)  # interpolation value for v2 and v3
+                # interpolation value for v2 and v3
+                # h is np.float64. if h2 - h3 == 0, t2 becomes -inf.
+                t2 = 0 if (denom := h2 - h3) == 0 else (h2 - h) / denom
+                # t2 = (h2 - h) / (h2 - h3)
                 v2_c_n = self.lerp(v2_c, v3_c, t2)
                 v2_b_n = self.lerp(v2_b, v3_b, t2)
 

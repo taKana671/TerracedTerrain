@@ -11,7 +11,7 @@ from panda3d.core import OrthographicLens, Camera, MouseWatcher, PGTop
 from panda3d.core import AntialiasAttrib
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
-from themes import Mountain, IceLand, Desert
+from themes import themes
 
 from gui import Gui
 from terraced_terrain_generator import TerracedTerrainGenerator
@@ -28,9 +28,10 @@ load_prc_file_data("", """
 
 class Status(Enum):
 
-    SHOW_MODEL = auto()
-    REPLACE_MODEL = auto()
-    REPLACE_CLASS = auto()
+    DISPLAYING = auto()
+    REMOVE = auto()
+    CREATE = auto()
+    SETUP = auto()
 
 
 class TerracedTerrain(ShowBase):
@@ -44,7 +45,7 @@ class TerracedTerrain(ShowBase):
 
         self.camera_root = NodePath('camera_root')
         self.camera_root.reparent_to(self.render)
-        self.camera_root.set_hpr(Vec3(-56.9, 0, 2.8))
+        # self.camera_root.set_hpr(Vec3(-56.9, 0, 2.8))
 
         # create model display region.
         self.mw3d_node = self.create_display_region(Vec4(0.2, 1.0, 0.0, 1.0))
@@ -60,12 +61,13 @@ class TerracedTerrain(ShowBase):
         self.gui.create_control_widgets()
         # self.gui = Gui()
         # self.gui.create_control_widgets(self.gui_aspect2d)
-        self.dispay_model(hpr=Vec3(0, 45, 0))
+        self.display_model()
 
         self.show_wireframe = False
         self.dragging = False
         self.before_mouse_pos = None
-        self.state = Status.SHOW_MODEL
+        self.state = Status.DISPLAYING
+
 
         self.accept('d', self.toggle_wireframe)
         self.accept('i', self.print_info)
@@ -73,43 +75,6 @@ class TerracedTerrain(ShowBase):
         self.accept('mouse1', self.mouse_click)
         self.accept('mouse1-up', self.mouse_release)
         self.taskMgr.add(self.update, 'update')
-
-    def dispay_model(self, hpr=None):
-        if hpr is None:
-            hpr = self.model.get_hpr()
-            self.model.remove_node()
-
-        self.model = self.terrain_maker.create()
-        self.model.set_pos_hpr_scale(Point3(0, 0, 0), hpr, 4)
-        self.model.reparent_to(self.render)
-
-    def change_terrain(self, selected_theme, input_values):
-        for k, v in input_values.items():
-            setattr(self.terrain_maker, k, v)
-
-        match selected_theme:
-            case 'mountain':
-                theme = Mountain
-            case 'ice land':
-                theme = IceLand
-            case 'desert':
-                theme = Desert
-
-        setattr(self.terrain_maker, "theme", theme)
-        self.dispay_model()  # <---------------------Do in update method by using status.
-
-    def create_terrain_generator(self, noise):
-        match noise:
-            case 'Simplex Noise':
-                self.terrain_maker = TerracedTerrainGenerator.from_simplex()
-
-            case 'Celullar Noise':
-                self.terrain_maker = TerracedTerrainGenerator.from_cellular()
-
-            case 'Perlin Noise':
-                self.terrain_maker = TerracedTerrainGenerator.from_perlin()
-
-        return {k: getattr(self.terrain_maker, k) for k in self.gui.input_items.keys()}
 
     def output_bam_file(self):
         model_type = self.model_cls.__name__.lower()
@@ -288,12 +253,55 @@ class TerracedTerrain(ShowBase):
 
         self.before_mouse_pos = Vec2(mouse_pos.xy)
 
+    def start_terrain_change(self):
+        if self.state == Status.DISPLAYING:
+            if self.gui.validate_input_values():
+                self.state = Status.REMOVE
+
+    def remove_current_terrain(self):
+        self.model.remove_node()
+        self.model = None
+
+    def display_model(self):
+        print('Start creating new terrain')
+        self.camera_root.set_hpr(Vec3(-56.9, 0, 2.8))
+        self.model = self.terrain_generator.create()
+        self.model.set_pos_hpr_scale(Point3(0, 0, 0), Vec3(0, 45, 0), 4)
+        self.model.reparent_to(self.render)
+        print('create model')
+
+    def change_terrain_attributes(self):
+        input_values = self.gui.get_input_values()
+
+        for k, v in input_values.items():
+            setattr(self.terrain_generator, k, v)
+
+        theme_name = self.gui.get_checked_theme()
+        theme = themes[theme_name.lower()]
+        setattr(self.terrain_generator, "theme", theme)
+
+    def create_terrain_generator(self):
+        noise = self.gui.get_checked_noise()
+
+        match noise:
+            case 'SimplexNoise':
+                self.terrain_generator = TerracedTerrainGenerator.from_simplex()
+
+            case 'CelullarNoise':
+                self.terrain_generator = TerracedTerrainGenerator.from_cellular()
+
+            case 'PerlinNoise':
+                self.terrain_generator = TerracedTerrainGenerator.from_perlin()
+
+        default_values = {k: getattr(self.terrain_generator, k) for k in self.gui.input_items.keys()}
+        self.gui.set_input_values(default_values)
+
     def update(self, task):
         dt = globalClock.get_dt()
 
         match self.state:
 
-            case Status.SHOW_MODEL:
+            case Status.DISPLAYING:
 
                 if self.mw3d_node.has_mouse():
                     mouse_pos = self.mw3d_node.get_mouse()
@@ -301,6 +309,21 @@ class TerracedTerrain(ShowBase):
                     if self.dragging:
                         if globalClock.get_frame_time() - self.dragging_start_time >= 0.2:
                             self.rotate_camera(mouse_pos, dt)
+
+            case Status.REMOVE:
+                self.gui.disable_buttons()
+                self.remove_current_terrain()
+                self.state = Status.SETUP
+
+            case Status.SETUP:
+                self.change_terrain_attributes()
+                self.state = Status.CREATE
+
+            case Status.CREATE:
+                self.display_model()
+                self.gui.enable_buttons()
+                self.state = Status.DISPLAYING
+
         return task.cont
 
 

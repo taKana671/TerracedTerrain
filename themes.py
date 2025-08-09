@@ -1,10 +1,15 @@
 from enum import Enum
 
+themes = {}
 
 class Theme(Enum):
 
     def __init__(self, rgba):
         self.rgba = [round(v / 255, 2) for v in rgba]
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        themes[cls.__name__.lower()] = cls
 
 
 class Mountain(Theme):
@@ -32,7 +37,7 @@ class Mountain(Theme):
         return cls.LAYER_06.rgba
 
 
-class IceLand(Theme):
+class SnowMountain(Theme):
 
     LAYER_01 = [3, 51, 102, 255]
     LAYER_02 = [38, 73, 157, 255]
