@@ -7,7 +7,7 @@ from panda3d.core import Vec3, Point3, Vec2
 
 from shapes.create_geometry import ProceduralGeometry
 from noise import SimplexNoise, PerlinNoise, CellularNoise
-from themes import Mountain
+from themes import themes
 
 
 class TerracedTerrainGenerator(ProceduralGeometry):
@@ -17,13 +17,14 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             scale (float): The smaller this value is, the more sparse the noise becomes.
             segs_s (int): The number of vertices in the polygon that forms the ground; minimum is 3.
             radius (float): Length from the center of the polygon forming the ground to each vertex.
-            max_depth (int): The number of times that triangles formed by the center point and each
+            max_depth (int): The number of times that triangles formed by the center point and each.
                              vertex of the polygon that forms the ground are further divided into triangles.
-            octaves (int): The number of loops to calculate the height of the vertex coordinates
+            octaves (int): The number of loops to calculate the height of the vertex coordinates.
+            theme (str): one of moutain, snowmountain and desert.
     """
 
     def __init__(self, noise, scale=10, segs_c=5, radius=4,
-                 max_depth=6, octaves=3, theme=Mountain):
+                 max_depth=6, octaves=3, theme='mountain'):
         super().__init__()
         self.center = Point3(0, 0, 0)
         self.noise = noise
@@ -32,23 +33,23 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         self.radius = radius
         self.max_depth = max_depth
         self.octaves = octaves
-        self.theme = theme
+        self.theme = themes.get(theme.lower())
 
     @classmethod
     def from_simplex(cls, scale=8, segs_c=5, radius=3,
-                     max_depth=6, octaves=3, theme=Mountain):
+                     max_depth=6, octaves=3, theme='mountain'):
         noise = SimplexNoise()
         return cls(noise.snoise2, scale, segs_c, radius, max_depth, octaves, theme)
 
     @classmethod
     def from_perlin(cls, scale=15, segs_c=5, radius=3,
-                    max_depth=6, octaves=3, theme=Mountain):
+                    max_depth=6, octaves=3, theme='mountain'):
         noise = PerlinNoise()
         return cls(noise.pnoise2, scale, segs_c, radius, max_depth, octaves, theme)
 
     @classmethod
     def from_cellular(cls, scale=10, segs_c=5, radius=3,
-                      max_depth=6, octaves=3, theme=Mountain):
+                      max_depth=6, octaves=3, theme='mountain'):
         noise = CellularNoise()
         return cls(noise.fdist2, scale, segs_c, radius, max_depth, octaves, theme)
 

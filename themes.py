@@ -2,6 +2,7 @@ from enum import Enum
 
 themes = {}
 
+
 class Theme(Enum):
 
     def __init__(self, rgba):
@@ -79,7 +80,6 @@ class Desert(Theme):
         if z <= 0.85:
             return cls.LAYER_03.rgba
         if z <= 1.1:
-            
             return cls.LAYER_04.rgba
 
         return cls.LAYER_05.rgba

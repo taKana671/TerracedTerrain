@@ -3,18 +3,21 @@ import math
 from enum import Enum, auto
 from datetime import datetime
 
+from direct.gui.DirectWaitBar import DirectWaitBar
+from direct.showbase.ShowBase import ShowBase
+from direct.showbase.ShowBaseGlobal import globalClock
+from direct.stdpy import threading
 from panda3d.core import Vec3, Vec2, Point3, LColor, Vec4
 from panda3d.core import AmbientLight, DirectionalLight
 from panda3d.core import NodePath
 from panda3d.core import load_prc_file_data
 from panda3d.core import OrthographicLens, Camera, MouseWatcher, PGTop
 from panda3d.core import AntialiasAttrib
-from direct.showbase.ShowBase import ShowBase
-from direct.showbase.ShowBaseGlobal import globalClock
-from themes import themes
+
 
 from gui import Gui
 from terraced_terrain_generator import TerracedTerrainGenerator
+from themes import themes
 
 # Without 'framebuffer-multisample' and 'multisamples' settings,
 # there appears to be no effect of 'set_antialias(AntialiasAttrib.MAuto)'.
@@ -32,6 +35,41 @@ class Status(Enum):
     REMOVE = auto()
     CREATE = auto()
     SETUP = auto()
+    WAIT = auto()
+    FINISH = auto()
+
+
+class Progress(DirectWaitBar):
+
+    def __init__(self, parent=None):
+        self.range_max = 50
+        self.bar_color = (1, 1, 1, 1)
+
+        super().__init__(
+            parent=parent,
+            text='generating...',
+            text_fg=self.bar_color,
+            text_scale=0.05,
+            text_pos=(0, 0.05, 0),
+            range=self.range_max,
+            value=0,
+            barColor=self.bar_color,
+            frameSize=(-0.3, 0.3, 0, 0.025),
+            pos=(0.3, 0.5, 0.0)
+        )
+        self.initialiseoptions(type(self))
+        self.updateBarStyle()
+
+    def update_progress(self):
+        if self['value'] > self.range_max:
+            self['value'] -= self.range_max
+        else:
+            self['value'] += 1
+
+    def finish(self):
+        if self['value'] > self.range_max:
+            return True
+        self['value'] += 1
 
 
 class TerracedTerrain(ShowBase):
@@ -43,31 +81,28 @@ class TerracedTerrain(ShowBase):
         self.render.set_antialias(AntialiasAttrib.MAuto)
         self.setup_light()
 
+        # setup camera.
+        self.default_hpr = Vec3(-56.9, 0, 2.8) 
         self.camera_root = NodePath('camera_root')
         self.camera_root.reparent_to(self.render)
-        # self.camera_root.set_hpr(Vec3(-56.9, 0, 2.8))
+        self.camera_root.set_hpr(self.default_hpr)
 
         # create model display region.
         self.mw3d_node = self.create_display_region(Vec4(0.2, 1.0, 0.0, 1.0))
-        # self.camera.set_pos(Point3(30, -30, 0))
-        # self.camera.look_at(Point3(0, 0, 0))
-        # self.camera.reparent_to(self.camera_root)
-
         # create gui region.
         self.gui_aspect2d = self.create_gui_region(Vec4(0.0, 0.2, 0.0, 1.0), 'gui')
 
         # create gui.
         self.gui = Gui(self.gui_aspect2d)
         self.gui.create_control_widgets()
-        # self.gui = Gui()
-        # self.gui.create_control_widgets(self.gui_aspect2d)
-        self.display_model()
+        # show terrain.
+        self.create_model()
+        self.model.reparent_to(self.render)
 
         self.show_wireframe = False
         self.dragging = False
         self.before_mouse_pos = None
         self.state = Status.DISPLAYING
-
 
         self.accept('d', self.toggle_wireframe)
         self.accept('i', self.print_info)
@@ -146,7 +181,6 @@ class TerracedTerrain(ShowBase):
         input_ctrl.attach_new_node(mw_node)
         # Restricts new MouseWatcher to the intended display region.
         mw_node.set_display_region(display_region)
-
         return mw_node
 
     def create_display_region(self, region_size):
@@ -219,8 +253,6 @@ class TerracedTerrain(ShowBase):
         directional_light.node().set_color(LColor(1, 1, 1, 1))
         directional_light.set_pos_hpr(Point3(0, 20, 50), Vec3(-30, -45, 0))
 
-        # directional_light.set_pos_hpr(Point3(0, 20, 50), Vec3(-20, -160, 0))
-
         # directional_light.node().show_frustum()
         self.render.set_light(directional_light)
         directional_light.node().set_shadow_caster(True)
@@ -262,13 +294,9 @@ class TerracedTerrain(ShowBase):
         self.model.remove_node()
         self.model = None
 
-    def display_model(self):
-        print('Start creating new terrain')
-        self.camera_root.set_hpr(Vec3(-56.9, 0, 2.8))
+    def create_model(self):
         self.model = self.terrain_generator.create()
         self.model.set_pos_hpr_scale(Point3(0, 0, 0), Vec3(0, 45, 0), 4)
-        self.model.reparent_to(self.render)
-        print('create model')
 
     def change_terrain_attributes(self):
         input_values = self.gui.get_input_values()
@@ -317,10 +345,25 @@ class TerracedTerrain(ShowBase):
 
             case Status.SETUP:
                 self.change_terrain_attributes()
+                self.bar = Progress(self.aspect2d)
+                self.terrain_create_thread = threading.Thread(target=self.create_model)
+                self.terrain_create_thread.start()
                 self.state = Status.CREATE
 
             case Status.CREATE:
-                self.display_model()
+                if not self.terrain_create_thread.is_alive():
+                    self.state = Status.WAIT
+                else:
+                    self.bar.update_progress()
+
+            case Status.WAIT:
+                if self.bar.finish():
+                    self.bar.destroy()
+                    self.state = Status.FINISH
+
+            case Status.FINISH:
+                self.model.reparent_to(self.render)
+                self.camera_root.set_hpr(self.default_hpr)
                 self.gui.enable_buttons()
                 self.state = Status.DISPLAYING
 

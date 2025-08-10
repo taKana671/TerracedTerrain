@@ -44,6 +44,12 @@ class Button(DirectButton):
         )
         self.initialiseoptions(type(self))
 
+    def make_deactivate(self):
+        self['state'] = DGG.DISABLED
+
+    def make_activate(self):
+        self['state'] = DGG.NORMAL
+
 
 class Label(DirectLabel):
 
@@ -78,8 +84,8 @@ class Entry(DirectEntry):
         )
         self.initialiseoptions(type(self))
 
-    def change_frame_color(self, warn=False):
-        if warn:
+    def change_frame_color(self, warning=False):
+        if warning:
             self['frameColor'] = LColor(1, 0, 0, 0.3)
         else:
             if self['frameColor'] != Gui.frame_color:
@@ -115,14 +121,10 @@ class Gui(DirectFrame):
         self.create_buttons(-0.7)
 
     def create_buttons(self, start_z):
-        buttons = [
-            ('Reflect Changes', self.reflect_changes),
-            ('Output BamFile', '')
-        ]
-
-        for i, (text, cmd) in enumerate(buttons):
-            z = start_z - 0.1 * i
-            Button(self, text, Point3(0, 0, z), cmd)
+        self.relfect_btn = Button(
+            self, 'Reflect Changes', Point3(0, 0, start_z), base.start_terrain_change)
+        self.output_btn = Button(
+            self, 'Output BamFile', Point3(0, 0, start_z - 0.1), '')
 
     def create_entries(self, start_z):
         """Create entry boxes and their labels.
@@ -139,13 +141,13 @@ class Gui(DirectFrame):
     def create_radios(self, start_z):
         """Create radio buttons to select a noise and a theme.
         """
-        noises = ['Simplex Noise', 'Celullar Noise', 'Perlin Noise']
-        themes = ['mountain', 'ice land', 'desert']
+        noises = ['SimplexNoise', 'CelullarNoise', 'PerlinNoise']
+        themes = ['Mountain', 'SnowMountain', 'Desert']
         self.noise = noises[:1]
         self.theme = themes[:1]
 
         items = [
-            [noises, self.noise, self.choose_noise],
+            [noises, self.noise, base.create_terrain_generator],
             [themes, self.theme, ''],
         ]
 
@@ -158,7 +160,7 @@ class Gui(DirectFrame):
                 radio = RadioButton(self, name, pos, variable, func)
                 radios.append(radio)
 
-                if name == 'mountain':
+                if name == 'Mountain':
                     self.default_theme = radio
 
             for r in radios:
@@ -166,9 +168,7 @@ class Gui(DirectFrame):
 
             start_z = z - 0.08 * 2
 
-    def choose_noise(self):
-        default_values = base.create_terrain_generator(self.noise[0])
-
+    def set_input_values(self, default_values):
         if self.default_theme is not None:
             self.default_theme.check()
 
@@ -176,16 +176,42 @@ class Gui(DirectFrame):
             entry = self.entries[k]
             entry.enterText(str(v))
 
-    def reflect_changes(self):
+    def validate_input_values(self):
+        invalid_values = 0
+
+        for k, data_type in self.input_items.items():
+            entry = self.entries[k]
+
+            try:
+                data_type(entry.get())
+            except ValueError:
+                entry.change_frame_color(warning=True)
+                invalid_values += 1
+            else:
+                entry.change_frame_color()
+
+        if invalid_values == 0:
+            return True
+
+    def get_input_values(self):
         input_values = {}
 
-        try:
-            for k, data_type in self.input_items.items():
-                entry = self.entries[k] 
-                input_values[k] = data_type(entry.get())
-                entry.change_frame_color()
-        except ValueError:
-            print("check the values entered in the entry boxes.")
-            entry.change_frame_color(warn=True)
-        else:
-            base.change_terrain(self.theme[0], input_values)
+        for k, data_type in self.input_items.items():
+            v = data_type(self.entries[k].get())
+            input_values[k] = v
+
+        return input_values
+
+    def get_checked_noise(self):
+        return self.noise[0]
+
+    def get_checked_theme(self):
+        return self.theme[0]
+
+    def disable_buttons(self):
+        self.relfect_btn.make_deactivate()
+        self.output_btn.make_deactivate()
+
+    def enable_buttons(self):
+        self.relfect_btn.make_activate()
+        self.output_btn.make_activate()
