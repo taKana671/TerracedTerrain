@@ -1,18 +1,25 @@
 # TerracedTerrain
 
-This repository uses the meandering triangles algorithm to create a 3D model of terraced terrain. The height of the vertices is calculated using noise such as simplex and noise. The coloring of the terraced terrain is set to the color of the vertex information.
+This repository uses the meandering triangles algorithm to create a 3D model of terraced terrain. 
+The polygon that forms the ground is repeatedly divided into triangles, and noise such as simplex and cellular is used to calculate the height of each vertex. 
+Then, the meandering triangles algorithm is used to form a staircase-like terrain.
+The terrain is colored by setting color information directly to the vertices.
 In addition, by running `terraced_terrain.py`, you can create a 3D model while checking how the terrain changes depending on the parameters.
+<br/><br/>
+The meandering triangles algorithm is based on https://icospheric.com/blog/2016/07/17/making-terraced-terrain/.
 
-![Image](https://github.com/user-attachments/assets/f9050f43-5eac-41fd-bcdf-22f96ed2b8af)
+![Image](https://github.com/user-attachments/assets/9de4eeef-a28e-41b7-ab28-04bae225088d)
 
 # Requirements
+
 * Panda3D 1.10.15
 * numpy 2.2.4
 * Cython 3.0.12
 * opencv-contrib-python 4.11.0.86
-* opencv-python         4.11.0.86
+* opencv-python 4.11.0.86
   
 # Environment
+
 * Python 3.12
 * Windows11
 
@@ -30,10 +37,12 @@ If cytnon code is not built, noise is calculated using python code.
 cd TerracedTerrain
 python setup.py build_ext --inplace
 ```
+
 If the error like "ModuleNotFoundError: No module named ‘distutils’" occurs, install the setuptools.
 ```
 pip install setuptools
 ```
+
 ### Code sample
 
 Create an instance of TerracedTerrainGenerator and call the create method to return the NodePath of the terrain's 3D model. 
@@ -80,4 +89,6 @@ If you want to change the parameters, edit the values in the entry boxes and cli
 ```
 python terraced_terrain.py
 ```
-![Image](github.com/user-attachments/assets/d1f98aab-b113-4be0-b50a-4e79d49bc580)
+
+![Image](https://github.com/user-attachments/assets/d1f98aab-b113-4be0-b50a-4e79d49bc580)
+
