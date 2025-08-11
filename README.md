@@ -73,7 +73,7 @@ model = generator.create()
   * Length from the center of the polygon forming the ground to each vertex; default is 3.
 
 * _max_depth: int_
-  * The number of times that triangles, which formed by the center point and each vertex of the ground polygon, are further divided into triangles; default is 6.
+  * The number of times that triangles, formed by the center point and each vertex of the ground polygon, are further divided into triangles; default is 6.
 
 * _octaves: int_
   * The number of loops to calculate the height of the vertex coordinates; default is 3.

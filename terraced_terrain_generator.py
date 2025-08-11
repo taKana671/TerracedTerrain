@@ -17,10 +17,10 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             scale (float): The smaller this value is, the more sparse the noise becomes.
             segs_s (int): The number of vertices in the polygon that forms the ground; minimum is 3.
             radius (float): Length from the center of the polygon forming the ground to each vertex.
-            max_depth (int): The number of times that triangles formed by the center point and each.
-                             vertex of the polygon that forms the ground are further divided into triangles.
+            max_depth (int): The number of times that triangles, formed by the center point and each
+                             vertex of the polygon that forms the ground, are further divided into triangles.
             octaves (int): The number of loops to calculate the height of the vertex coordinates.
-            theme (str): one of "moutain", "snowmountain" and "desert".
+            theme (str): one of "mountain", "snowmountain" and "desert".
     """
 
     def __init__(self, noise, scale=10, segs_c=5, radius=4,
