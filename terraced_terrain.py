@@ -82,7 +82,7 @@ class TerracedTerrain(ShowBase):
         self.setup_light()
 
         # setup camera.
-        self.default_hpr = Vec3(-56.9, 0, 2.8) 
+        self.default_hpr = Vec3(-56.9, 0, 2.8)
         self.camera_root = NodePath('camera_root')
         self.camera_root.reparent_to(self.render)
         self.camera_root.set_hpr(self.default_hpr)
@@ -104,7 +104,7 @@ class TerracedTerrain(ShowBase):
         self.before_mouse_pos = None
         self.state = Status.DISPLAYING
 
-        self.accept('d', self.toggle_wireframe)
+        # self.accept('d', self.toggle_wireframe)
         self.accept('i', self.print_info)
         self.accept('escape', sys.exit)
         self.accept('mouse1', self.mouse_click)
@@ -112,19 +112,10 @@ class TerracedTerrain(ShowBase):
         self.taskMgr.add(self.update, 'update')
 
     def output_bam_file(self):
-        model_type = self.model_cls.__name__.lower()
+        theme = self.gui.get_checked_theme()
         num = datetime.now().strftime('%Y%m%d%H%M%S')
-        filename = f'{model_type}_{num}.bam'
-
-        output_model = self.model.copy_to(self.render)
-        output_model.set_render_mode_filled()
-        output_model.set_hpr(Vec3(0, 0, 0))
-        output_model.set_color(LColor(1, 1, 1, 1))
-        output_model.flatten_strong()
-
-        # output_mode.clear_color()
-        output_model.writeBamFile(filename)
-        output_model.remove_node()
+        filename = f'{theme}_{num}.bam'
+        self.model.write_bam_file(filename)
 
     def toggle_wireframe(self):
         if self.show_wireframe:

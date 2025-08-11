@@ -20,7 +20,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             max_depth (int): The number of times that triangles formed by the center point and each.
                              vertex of the polygon that forms the ground are further divided into triangles.
             octaves (int): The number of loops to calculate the height of the vertex coordinates.
-            theme (str): one of moutain, snowmountain and desert.
+            theme (str): one of "moutain", "snowmountain" and "desert".
     """
 
     def __init__(self, noise, scale=10, segs_c=5, radius=4,
@@ -101,7 +101,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         amplitude = 1.0
         frequency = 0.055
         persistence = 0.375  # 0.5
-        lacunarity = 2.52  # 2.5
+        lacunarity = 2.52    # 2.5
 
         for i in range(self.octaves):
             offset = offsets[i]
@@ -111,6 +111,9 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             height += amplitude * noise
             frequency *= lacunarity
             amplitude *= persistence
+
+        if height <= self.theme.LAYER_01.threshold:
+            height = self.theme.LAYER_01.threshold
 
         return height
 

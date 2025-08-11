@@ -32,7 +32,7 @@ class Button(DirectButton):
             parent=parent,
             pos=pos,
             relief=DGG.RAISED,
-            frameSize=(-0.255, 0.255, -0.05, 0.05),
+            frameSize=(-0.28, 0.28, -0.05, 0.05),
             frameColor=Gui.frame_color,
             borderWidth=(0.01, 0.01),
             text=txt,
@@ -112,19 +112,23 @@ class Gui(DirectFrame):
 
         self.default_theme = None
         self.entries = {}
+        self.btns = []
         self.input_items = {
             'scale': float, 'segs_c': int, 'radius': float, 'max_depth': int, 'octaves': int}
 
     def create_control_widgets(self):
         self.create_entries(0.15)
         self.create_radios(0.85)
-        self.create_buttons(-0.7)
+        self.create_buttons(-0.6)
 
     def create_buttons(self, start_z):
-        self.relfect_btn = Button(
-            self, 'Reflect Changes', Point3(0, 0, start_z), base.start_terrain_change)
-        self.output_btn = Button(
-            self, 'Output BamFile', Point3(0, 0, start_z - 0.1), '')
+
+        self.btns.append(Button(
+            self, 'Reflect Changes', Point3(0, 0, start_z), base.start_terrain_change))
+        self.btns.append(Button(
+            self, 'Output BamFile', Point3(0, 0, start_z - 0.1), base.output_bam_file))
+        self.btns.append(Button(
+            self, 'Toggle Wireframe', Point3(0, 0, start_z - 0.2), base.toggle_wireframe))
 
     def create_entries(self, start_z):
         """Create entry boxes and their labels.
@@ -209,9 +213,9 @@ class Gui(DirectFrame):
         return self.theme[0]
 
     def disable_buttons(self):
-        self.relfect_btn.make_deactivate()
-        self.output_btn.make_deactivate()
+        for btn in self.btns:
+            btn.make_deactivate()
 
     def enable_buttons(self):
-        self.relfect_btn.make_activate()
-        self.output_btn.make_activate()
+        for btn in self.btns:
+            btn.make_activate()
