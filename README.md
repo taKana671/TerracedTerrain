@@ -5,11 +5,15 @@ The polygon that forms the ground is repeatedly divided into triangles, and nois
 Then, the meandering triangles algorithm is used to form a staircase-like terrain.
 The terrain is colored by setting color information directly to the vertices.
 In addition, by running `terraced_terrain.py`, you can create a 3D model while checking how the terrain changes depending on the parameters.
-<br/><br/>
-The meandering triangles algorithm is based on https://icospheric.com/blog/2016/07/17/making-terraced-terrain/.
 
 ![Image](https://github.com/user-attachments/assets/9de4eeef-a28e-41b7-ab28-04bae225088d)
 
+# References
+
+The meandering triangles algorithm is based on below:
+* https://icospheric.com/blog/2016/07/17/making-terraced-terrain/
+* https://blog.lslabs.dev/posts/ttg
+  
 # Requirements
 
 * Panda3D 1.10.15
@@ -45,7 +49,7 @@ pip install setuptools
 
 ### Code sample
 
-Create an instance of TerracedTerrainGenerator and call the create method to return the NodePath of the terrain's 3D model. 
+Create an instance of TerracedTerrainGenerator and call the create method to return the panda3D's NodePath of the terrain's 3D model. 
 If you use the class methods from_simplex, from_cellular, or from_perlin, you do not need to specify noise among the following [parameters](#parameters).
 
 ```
