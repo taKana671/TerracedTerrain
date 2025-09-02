@@ -7,7 +7,10 @@ from panda3d.core import Vec3, Point3, Vec2
 
 from shapes.create_geometry import ProceduralGeometry
 from noise import SimplexNoise, PerlinNoise, CellularNoise
-from themes import themes
+from noise import Fractal2D
+from themes import themes, Island
+
+from mask.radial_gradient_generator import RadialGradientMask
 
 
 class TerracedTerrainGenerator(ProceduralGeometry):
@@ -24,7 +27,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
     """
 
     def __init__(self, noise, scale=10, segs_c=5, radius=4,
-                 max_depth=6, octaves=3, theme='mountain'):
+                 max_depth=6, octaves=6, theme='mountain'):
         super().__init__()
         self.center = Point3(0, 0, 0)
         self.noise = noise
@@ -34,6 +37,10 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         self.max_depth = max_depth
         self.octaves = octaves
         self.theme = themes.get(theme.lower())
+
+        if self.theme == Island:
+            self.mask = RadialGradientMask(
+                height=self.radius, width=self.radius, center_h=0, center_w=0)
 
     @classmethod
     def from_simplex(cls, scale=8, segs_c=5, radius=3,
@@ -52,6 +59,13 @@ class TerracedTerrainGenerator(ProceduralGeometry):
                       max_depth=6, octaves=3, theme='mountain'):
         noise = CellularNoise()
         return cls(noise.fdist2, scale, segs_c, radius, max_depth, octaves, theme)
+
+    @classmethod
+    def from_fractal(cls, scale=15, segs_c=5, radius=3,
+                     max_depth=6, octaves=3, theme='island'):
+        simplex = SimplexNoise()
+        noise = Fractal2D(simplex.snoise2)
+        return cls(noise.fractal, scale, segs_c, radius, max_depth, octaves, theme)
 
     def get_polygon_vertices(self, theta):
         rad = math.radians(theta)
@@ -108,12 +122,23 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             fx = x * frequency + offset.x
             fy = y * frequency + offset.y
             noise = self.noise((fx + t) * self.scale, (fy + t) * self.scale)
+
             height += amplitude * noise
             frequency *= lacunarity
             amplitude *= persistence
 
-        if height <= self.theme.LAYER_01.threshold:
-            height = self.theme.LAYER_01.threshold
+        if self.theme == Island:
+            r, _, _ = self.mask.get_gradient(x, y)
+            height = 0 if r >= height else height - r  
+        else:
+            if height <= self.theme.LAYER_01.threshold:
+                height = self.theme.LAYER_01.threshold
+
+        # r, _, _ = self.mask.get_gradient(x, y)
+        # if r >= height:
+        #     height = 0
+        # else:
+        #     height = height - r
 
         return height
 

@@ -312,6 +312,9 @@ class TerracedTerrain(ShowBase):
             case 'PerlinNoise':
                 self.terrain_generator = TerracedTerrainGenerator.from_perlin()
 
+            case 'SimplexFractalNoise':
+                self.terrain_generator = TerracedTerrainGenerator.from_fractal()
+
         default_values = {k: getattr(self.terrain_generator, k) for k in self.gui.input_items.keys()}
         self.gui.set_input_values(default_values)
 
