@@ -110,7 +110,6 @@ class Gui(DirectFrame):
         self.initialiseoptions(type(self))
         self.set_transparency(TransparencyAttrib.MAlpha)
 
-        self.default_theme = None
         self.entries = {}
         self.btns = []
         self.input_items = {
@@ -164,18 +163,12 @@ class Gui(DirectFrame):
                 radio = RadioButton(self, name, pos, variable, func)
                 radios.append(radio)
 
-                if name == 'Mountain':
-                    self.default_theme = radio
-
             for r in radios:
                 r.setOthers(radios)
 
             start_z = z - 0.08 * 2
 
     def set_input_values(self, default_values):
-        if self.default_theme is not None:
-            self.default_theme.check()
-
         for k, v in default_values.items():
             entry = self.entries[k]
             entry.enterText(str(v))

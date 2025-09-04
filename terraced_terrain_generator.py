@@ -38,10 +38,6 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         self.octaves = octaves
         self.theme = themes.get(theme.lower())
 
-        if self.theme == Island:
-            self.mask = RadialGradientMask(
-                height=self.radius, width=self.radius, center_h=0, center_w=0)
-
     @classmethod
     def from_simplex(cls, scale=8, segs_c=5, radius=3,
                      max_depth=6, octaves=3, theme='mountain'):
@@ -155,6 +151,10 @@ class TerracedTerrainGenerator(ProceduralGeometry):
                 yield tri
 
     def generate_terraced_terrain(self, vertex_cnt, vdata_values, prim_indices):
+        if self.theme == Island:
+            self.mask = RadialGradientMask(
+                height=self.radius, width=self.radius, center_h=0, center_w=0)
+
         for v1, v2, v3 in self.generate_hills_and_valleys():
             # Each point's heights above "sea level". For a flat terrain,
             # it's just the vertical component of the respective vector.
