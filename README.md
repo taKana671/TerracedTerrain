@@ -5,8 +5,9 @@ The polygon that forms the ground is repeatedly divided into triangles, and nois
 Then, the meandering triangles algorithm is used to form a staircase-like terrain.
 The terrain is colored by setting color information directly to the vertices.
 In addition, by running `terraced_terrain.py`, you can create a 3D model while checking how the terrain changes depending on the parameters.
+<br/><br/>
 
-![Image](https://github.com/user-attachments/assets/50ee92cb-424c-42ef-93e4-0577fecfc8b5)
+![Image](https://github.com/user-attachments/assets/bb53c1d9-415b-4599-9a42-f8442efc1630)
 
 # References
 
