@@ -110,14 +110,13 @@ class Gui(DirectFrame):
         self.initialiseoptions(type(self))
         self.set_transparency(TransparencyAttrib.MAlpha)
 
-        self.default_theme = None
         self.entries = {}
         self.btns = []
         self.input_items = {
             'scale': float, 'segs_c': int, 'radius': float, 'max_depth': int, 'octaves': int}
 
     def create_control_widgets(self):
-        self.create_entries(0.15)
+        self.create_entries(0.03)
         self.create_radios(0.85)
         self.create_buttons(-0.6)
 
@@ -145,8 +144,8 @@ class Gui(DirectFrame):
     def create_radios(self, start_z):
         """Create radio buttons to select a noise and a theme.
         """
-        noises = ['SimplexNoise', 'CelullarNoise', 'PerlinNoise']
-        themes = ['Mountain', 'SnowMountain', 'Desert']
+        noises = ['SimplexNoise', 'CelullarNoise', 'PerlinNoise', 'SimplexFractalNoise']
+        themes = ['Mountain', 'SnowMountain', 'Desert', 'Island']
         self.noise = noises[:1]
         self.theme = themes[:1]
 
@@ -164,18 +163,12 @@ class Gui(DirectFrame):
                 radio = RadioButton(self, name, pos, variable, func)
                 radios.append(radio)
 
-                if name == 'Mountain':
-                    self.default_theme = radio
-
             for r in radios:
                 r.setOthers(radios)
 
             start_z = z - 0.08 * 2
 
     def set_input_values(self, default_values):
-        if self.default_theme is not None:
-            self.default_theme.check()
-
         for k, v in default_values.items():
             entry = self.entries[k]
             entry.enterText(str(v))

@@ -84,3 +84,25 @@ class Desert(Theme):
             return cls.LAYER_04.rgba
 
         return cls.LAYER_05.rgba
+
+
+class Island(Theme):
+
+    LAYER_01 = ([0, 104, 183, 255], 0.0)
+    LAYER_02 = ([255, 247, 153, 255], 0.15)
+    LAYER_03 = ([128, 120, 92, 255], 0.22)
+    LAYER_04 = ([0, 102, 46, 255], 0.4)
+    LAYER_05 = ([0, 128, 57, 255], None)
+
+    @classmethod
+    def color(cls, z):
+        if z <= cls.LAYER_01.threshold:
+            return cls.LAYER_01.rgba
+        if z <= cls.LAYER_02.threshold:
+            return cls.LAYER_02.rgba
+        if z <= cls.LAYER_03.threshold:
+            return cls.LAYER_03.rgba
+        if z <= cls.LAYER_04.threshold:
+            return cls.LAYER_04.rgba
+
+        return cls.LAYER_05.rgba
