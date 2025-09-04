@@ -6,7 +6,7 @@ Then, the meandering triangles algorithm is used to form a staircase-like terrai
 The terrain is colored by setting color information directly to the vertices.
 In addition, by running `terraced_terrain.py`, you can create a 3D model while checking how the terrain changes depending on the parameters.
 
-![Image](https://github.com/user-attachments/assets/9de4eeef-a28e-41b7-ab28-04bae225088d)
+![Image](https://github.com/user-attachments/assets/50ee92cb-424c-42ef-93e4-0577fecfc8b5)
 
 # References
 
@@ -94,5 +94,5 @@ If you want to change the parameters, edit the values in the entry boxes and cli
 python terraced_terrain.py
 ```
 
-![Image](https://github.com/user-attachments/assets/d1f98aab-b113-4be0-b50a-4e79d49bc580)
+![Image](https://github.com/user-attachments/assets/d790e644-7679-41d7-9869-48027058bc72)
 
