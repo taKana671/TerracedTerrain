@@ -56,9 +56,10 @@ If you use the class methods from_simplex, from_cellular, or from_perlin, you do
 ```
 from terraced_terrain_generator import TerracedTerrainGenerator
 
-generator = TerracedTerrainGenerator.from_simplex()     # simplexNoise is specified.
+generator = TerracedTerrainGenerator.from_simplex()     # SimplexNoise is specified.
 # generator = TerracedTerrainGenerator.from_cellular()  # CellularNoise is specified.
 # generator = TerracedTerrainGenerator.from_perlin()    # PerlinNoise is specified.
+# generator = TerracedTerrainGenerator.from_fractal()   # SimplexFractalNoise is specified.
 
 model = generator.create()
 ```
