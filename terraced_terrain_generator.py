@@ -57,7 +57,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
         return cls(noise.fdist2, scale, segs_c, radius, max_depth, octaves, theme)
 
     @classmethod
-    def from_fractal(cls, scale=15, segs_c=5, radius=3,
+    def from_fractal(cls, scale=10, segs_c=5, radius=3,
                      max_depth=6, octaves=3, theme='island'):
         simplex = SimplexNoise()
         noise = Fractal2D(simplex.snoise2)
@@ -125,16 +125,10 @@ class TerracedTerrainGenerator(ProceduralGeometry):
 
         if self.theme == Island:
             r, _, _ = self.mask.get_gradient(x, y)
-            height = 0 if r >= height else height - r  
+            height = 0 if r >= height else height - r
         else:
             if height <= self.theme.LAYER_01.threshold:
                 height = self.theme.LAYER_01.threshold
-
-        # r, _, _ = self.mask.get_gradient(x, y)
-        # if r >= height:
-        #     height = 0
-        # else:
-        #     height = height - r
 
         return height
 
@@ -161,7 +155,7 @@ class TerracedTerrainGenerator(ProceduralGeometry):
             h1 = v1.z
             h2 = v2.z
             h3 = v3.z
-            # import pdb; pdb.set_trace()
+
             li = [int(h_ * 10) for h_ in (h1, h2, h3)]
             h_min = np.floor(min(li))
             h_max = np.floor(max(li))
